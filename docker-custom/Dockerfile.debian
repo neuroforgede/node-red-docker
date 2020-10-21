@@ -1,11 +1,6 @@
 ARG ARCH=amd64
-<<<<<<< HEAD
-ARG NODE_VERSION=10
-ARG OS=alpine
-=======
 ARG NODE_VERSION=12
 ARG OS=buster-slim
->>>>>>> v1.2.2
 
 #### Stage BASE ########################################################################################################
 FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
@@ -18,27 +13,16 @@ RUN set -ex && \
     apt-get update && apt-get install -y \
         bash \
         tzdata \
-<<<<<<< HEAD
-        iputils-ping \
-        curl \
-        nano \
-=======
         curl \
         nano \
         wget \
->>>>>>> v1.2.2
         git \
         openssl \
         openssh-client && \
     mkdir -p /usr/src/node-red /data && \
     deluser --remove-home node && \
-<<<<<<< HEAD
-    useradd -d /usr/src/node-red -s /bin/bash -u 1000 node-red  && \
-    passwd -d node-red && \
-=======
     # adduser --home /usr/src/node-red --disabled-password --no-create-home node-red --uid 1000 && \
     useradd --home-dir /usr/src/node-red --uid 1000 node-red && \
->>>>>>> v1.2.2
     chown -R node-red:root /data && chmod -R g+rwX /data && \ 
     chown -R node-red:root /usr/src/node-red && chmod -R g+rwX /usr/src/node-red
     # chown -R node-red:node-red /data && \
