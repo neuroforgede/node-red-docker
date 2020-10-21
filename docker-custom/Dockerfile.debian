@@ -1,6 +1,11 @@
 ARG ARCH=amd64
+<<<<<<< HEAD
 ARG NODE_VERSION=10
 ARG OS=alpine
+=======
+ARG NODE_VERSION=12
+ARG OS=buster-slim
+>>>>>>> v1.2.2
 
 #### Stage BASE ########################################################################################################
 FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
@@ -13,16 +18,27 @@ RUN set -ex && \
     apt-get update && apt-get install -y \
         bash \
         tzdata \
+<<<<<<< HEAD
         iputils-ping \
         curl \
         nano \
+=======
+        curl \
+        nano \
+        wget \
+>>>>>>> v1.2.2
         git \
         openssl \
         openssh-client && \
     mkdir -p /usr/src/node-red /data && \
     deluser --remove-home node && \
+<<<<<<< HEAD
     useradd -d /usr/src/node-red -s /bin/bash -u 1000 node-red  && \
     passwd -d node-red && \
+=======
+    # adduser --home /usr/src/node-red --disabled-password --no-create-home node-red --uid 1000 && \
+    useradd --home-dir /usr/src/node-red --uid 1000 node-red && \
+>>>>>>> v1.2.2
     chown -R node-red:root /data && chmod -R g+rwX /data && \ 
     chown -R node-red:root /usr/src/node-red && chmod -R g+rwX /usr/src/node-red
     # chown -R node-red:node-red /data && \
@@ -33,14 +49,15 @@ WORKDIR /usr/src/node-red
 
 # package.json contains Node-RED NPM module and node dependencies
 COPY package.json .
+COPY flows.json /data
 
 #### Stage BUILD #######################################################################################################
 FROM base AS build
 
 # Install Build tools
-RUN apt-get update && apt-get install -y udev python && \
+RUN apt-get update && apt-get install -y build-essential python && \
     npm install --unsafe-perm --no-update-notifier --no-fund --only=production && \
-    /tmp/remove_native_gpio.sh && \
+    npm uninstall node-red-node-gpio && \
     cp -R node_modules prod_node_modules
 
 #### Stage RELEASE #####################################################################################################
@@ -53,7 +70,7 @@ ARG ARCH
 ARG TAG_SUFFIX=default
 
 LABEL org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.docker.dockerfile=".docker/Dockerfile.alpine" \
+    org.label-schema.docker.dockerfile=".docker/Dockerfile.debian" \
     org.label-schema.license="Apache-2.0" \
     org.label-schema.name="Node-RED" \
     org.label-schema.version=${BUILD_VERSION} \
@@ -69,7 +86,7 @@ COPY --from=build /usr/src/node-red/prod_node_modules ./node_modules
 
 # Chown, install devtools & Clean up
 RUN chown -R node-red:root /usr/src/node-red && \
-    apt-get update && apt-get install python python3 && \
+    apt-get update && apt-get install -y build-essential python-dev python3 && \
     rm -r /tmp/*
 
 USER node-red
@@ -81,9 +98,6 @@ ENV NODE_RED_VERSION=$NODE_RED_VERSION \
 
 # ENV NODE_RED_ENABLE_SAFE_MODE=true    # Uncomment to enable safe start mode (flows not running)
 # ENV NODE_RED_ENABLE_PROJECTS=true     # Uncomment to enable projects option
-
-# User configuration directory volume
-VOLUME ["/data"]
 
 # Expose the listening port of node-red
 EXPOSE 1880
